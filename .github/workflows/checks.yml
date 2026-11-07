@@ -49,3 +49,10 @@ jobs:
         with:
           name: screenshots
           path: docs/screenshots
+      - name: Stack-Diagnose
+        if: failure()
+        run: |
+          if [ -f .env ]; then
+            docker compose ps
+            docker compose logs --no-color --tail=80 app n8n db
+          fi

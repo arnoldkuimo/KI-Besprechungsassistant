@@ -1,9 +1,12 @@
 from copy import deepcopy
+from datetime import timedelta
 
+import httpx
 import pytest
 from sqlalchemy import select
 
 from backend.app.models import Job
+from backend.app.db import utcnow
 from backend.app.schemas import Report
 from backend.app.transcripts import segments_from_text, validate_report
 
@@ -190,3 +193,67 @@ def test_failed_processing_can_retry(client, monkeypatch):
     assert client.post(f"/api/meetings/{meeting}/retry").status_code == 200
     processor.tick()
     assert client.get(f"/api/meetings/{meeting}").json()["meeting"]["status"] == "draft"
+
+
+@pytest.mark.parametrize("failure", ["not_ready", "unavailable", "connection"])
+def test_workflow_delivery_recovers_after_startup(client, monkeypatch, failure):
+    meeting = create(client)
+    processor = client.app.state.processor
+    processor.settings.workflow_mode = "n8n"
+
+    def unavailable(url, **kwargs):
+        if failure == "connection":
+            raise httpx.ConnectError("Connection unavailable")
+        return httpx.Response(404 if failure == "not_ready" else 503, request=httpx.Request("POST", url))
+
+    monkeypatch.setattr("backend.app.service.httpx.post", unavailable)
+    processor.tick()
+    detail = client.get(f"/api/meetings/{meeting}").json()
+    assert detail["meeting"]["status"] == "queued"
+    assert detail["processing"]["state"] == "dispatched"
+    with client.app.state.factory.begin() as db:
+        job = db.scalar(select(Job).where(Job.meeting_id == meeting))
+        job.lease_until = utcnow() - timedelta(seconds=1)
+
+    def available(url, **kwargs):
+        processor.run(kwargs["json"]["job_id"])
+        return httpx.Response(200, request=httpx.Request("POST", url))
+
+    monkeypatch.setattr("backend.app.service.httpx.post", available)
+    processor.tick()
+    detail = client.get(f"/api/meetings/{meeting}").json()
+    assert detail["meeting"]["status"] == "draft"
+    assert len(detail["versions"]) == 1
+
+
+def test_workflow_delivery_does_not_retry_invalid_credentials(client, monkeypatch):
+    meeting = create(client)
+    processor = client.app.state.processor
+    processor.settings.workflow_mode = "n8n"
+    monkeypatch.setattr(
+        "backend.app.service.httpx.post",
+        lambda url, **_: httpx.Response(403, request=httpx.Request("POST", url)),
+    )
+    processor.tick()
+    assert client.get(f"/api/meetings/{meeting}").json()["meeting"]["status"] == "error"
+
+
+def test_workflow_delivery_stops_after_three_attempts(client, monkeypatch):
+    meeting = create(client)
+    processor = client.app.state.processor
+    processor.settings.workflow_mode = "n8n"
+    deliveries = []
+
+    def unavailable(url, **kwargs):
+        deliveries.append(kwargs["json"]["job_id"])
+        return httpx.Response(503, request=httpx.Request("POST", url))
+
+    monkeypatch.setattr("backend.app.service.httpx.post", unavailable)
+    for _ in range(3):
+        processor.tick()
+        with client.app.state.factory.begin() as db:
+            job = db.scalar(select(Job).where(Job.meeting_id == meeting))
+            job.lease_until = utcnow() - timedelta(seconds=1)
+    processor.tick()
+    assert len(deliveries) == 3
+    assert client.get(f"/api/meetings/{meeting}").json()["meeting"]["status"] == "error"

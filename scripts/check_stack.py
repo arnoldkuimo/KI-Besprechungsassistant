@@ -42,7 +42,9 @@ def main():
             if detail["meeting"]["status"] in ("draft", "error"):
                 break
             time.sleep(1)
-        assert detail["meeting"]["status"] == "draft", detail["meeting"]["last_error"]
+        assert detail["meeting"]["status"] == "draft", (
+            f"{detail['meeting']['last_error']} (Verarbeitung: {detail['processing']})"
+        )
         assert detail["report"]["tasks"]
         assert detail["report"]["summary"] and detail["report"]["decisions"]
         assert detail["report"]["open_questions"]

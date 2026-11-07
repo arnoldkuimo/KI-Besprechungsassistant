@@ -61,6 +61,14 @@ class Processing:
                 if meeting.source_version == job.source_version:
                     meeting.status = "queued" if job.state == "pending" else "error"
                     meeting.last_error = "Unterbrochene Verarbeitung. Bitte den Verlauf prüfen."
+                    audit(
+                        db,
+                        meeting.id,
+                        "lease_expired",
+                        "Erneuter Verarbeitungsversuch vorgemerkt."
+                        if job.state == "pending"
+                        else "Verarbeitung nach drei Versuchen abgebrochen.",
+                    )
             ids = list(db.scalars(select(Job.id).where(Job.state == "pending").order_by(Job.created_at).limit(3)))
         for job_id in ids:
             if self.settings.workflow_mode == "local":
@@ -91,7 +99,16 @@ class Processing:
                 timeout=8,
             )
             response.raise_for_status()
-        except (httpx.HTTPError, ValueError):
+        except httpx.HTTPError as error:
+            if isinstance(error, httpx.RequestError) or (
+                isinstance(error, httpx.HTTPStatusError)
+                and error.response.status_code in (404, 408, 429, 500, 502, 503, 504)
+            ):
+                # Die bestehende Versandreservierung begrenzt Abstand und Anzahl der Wiederholungen.
+                log.warning("Workflow delivery deferred for job %s (%s)", job_id, type(error).__name__)
+                return
+            self.fail(job_id, None)
+        except ValueError:
             self.fail(job_id, None)
 
     def owned(self, db, job_id, claim):

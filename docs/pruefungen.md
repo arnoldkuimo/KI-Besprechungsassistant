@@ -4,7 +4,7 @@
 
 | Prüfung | Ergebnis |
 | --- | --- |
-| Backend-Tests mit isolierten SQLite-Datenbanken | 25 bestanden |
+| Backend-Tests mit isolierten SQLite-Datenbanken | 30 bestanden |
 | Frontend-Unit-Tests | 2 bestanden |
 | TypeScript und Vite-Produktionsbuild | erfolgreich |
 | Ruff-Prüfung und Formatprüfung | erfolgreich |
@@ -51,6 +51,10 @@ Die Backend-Tests decken insbesondere ab:
 - Ungültige oder leere Modellausgaben erzeugen keinen freigabefähigen Entwurf.
 - Externe Fehler geben weder Schlüssel noch technische Originalmeldungen preis.
 - Der Transkriptionsadapter überträgt die ausgewählte Datei an das konfigurierte Modell.
+- Ein noch nicht registrierter n8n-Webhook und vorübergehende Verbindungsfehler
+  werden begrenzt erneut versucht. Es entstehen keine doppelten Protokollversionen.
+- Ein falscher Workflow-Zugang schlägt direkt fehl; ein dauerhafter Ausfall endet
+  nach höchstens drei Versandversuchen mit einem sichtbaren Fehler.
 
 ## Noch nicht vollständig geprüft
 
@@ -61,14 +65,18 @@ Die Backend-Tests decken insbesondere ab:
   organisatorische Datenschutzabnahme.
 - **Modellqualität im Alltag:** keine repräsentative Auswertung langer, mehrdeutiger
   oder schlecht transkribierter Besprechungen.
-- **GitHub Actions:** der lokale Testnachweis ersetzt keinen erfolgreichen CI-Lauf.
-  Dieser ist nach der Veröffentlichung separat zu kontrollieren.
+- **GitHub Actions:** der erste Lauf für `c9d38e1` bestand Backend, Frontend und
+  Geheimnisprüfung, scheiterte aber beim ersten Verarbeitungsauftrag nach dem
+  n8n-Neustart. Begrenzte Wiederholungen sind ergänzt und isoliert geprüft.
+  Der korrigierte Gesamtlauf ist auf [GitHub Actions](https://github.com/arnoldkuimo06-hash/KI-Besprechungsassistant/actions)
+  separat zu kontrollieren; lokale Tests allein belegen keinen grünen CI-Lauf.
 
 Der Docker-Start erfolgte aus einer normalen Windows-PowerShell. Die laufenden
 Dienste wurden anschließend über ihre lokalen HTTP-Endpunkte geprüft. Eine frühe
-Anfrage vor der Workflow-Registrierung schlug erwartbar fehl; nach abgeschlossenem
-Setup war der n8n-Gesamttest erfolgreich. Mit Tests erst beginnen, wenn das
-Startskript die fertigen Anwendungsadressen ausgegeben hat.
+Anfrage vor der Workflow-Registrierung zeigte ein Startproblem; nach abgeschlossenem
+Setup war der n8n-Gesamttest erfolgreich. Der Versand wartet bei vorübergehenden
+Fehlern nun auf den nächsten begrenzten Versuch. Mit Tests erst beginnen, wenn
+das Startskript die fertigen Anwendungsadressen ausgegeben hat.
 
 ## Bekannter Hinweis
 

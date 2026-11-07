@@ -100,6 +100,14 @@ Wenn eine Quelle ersetzt wird, verlieren alte Aufträge ihre Berechtigung zum
 Speichern. Sie dürfen den neueren Stand nicht überschreiben. Das Ergebnis einer
 alten Modellanfrage wird nach dem Rückruf nochmals gegen die Reservierung geprüft.
 
+Beim Versand an n8n bleiben vorübergehende Verbindungsfehler und ein noch nicht
+registrierter Webhook zunächst vorgemerkt. Die Versandreservierung läuft nach
+30 Sekunden ab und erlaubt insgesamt höchstens drei Versuche. Falsche
+Zugangsdaten werden nicht automatisch erneut gesendet. So kann n8n nach einem
+Neustart seine veröffentlichten Workflows laden, ohne dass eine frühe Anfrage
+sofort endgültig fehlschlägt. Wiederholungen und das Erreichen der Grenze werden
+im Bearbeitungsverlauf festgehalten.
+
 ## 7. Versionen und Freigabe
 
 `models.py` trennt Besprechung, Quellenversion, Protokollversion, Auftrag,
