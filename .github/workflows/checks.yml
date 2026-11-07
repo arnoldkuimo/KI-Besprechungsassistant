@@ -10,6 +10,8 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v7.1.0
         with:
           python-version: '3.12'
@@ -30,6 +32,8 @@ jobs:
           pnpm install --frozen-lockfile
           pnpm test
           pnpm build
+      - name: Veröffentlichung prüfen
+        run: python scripts/check_secrets.py --worktree --history
       - name: Stack starten und prüfen
         run: |
           python scripts/setup_stack.py

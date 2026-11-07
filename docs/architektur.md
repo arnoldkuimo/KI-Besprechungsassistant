@@ -49,8 +49,9 @@ im privaten Datenverzeichnis; es gibt keine automatische Aufbewahrungsfrist.
 Das Projekt nutzt im Text-Test `gpt-4.1-mini`. Die vorhandene Modellkonfiguration
 wurde beibehalten und mit dem konkreten Protokollformat getestet. Die Wahl ist
 konfigurierbar und bedeutet nicht, dass dieses Modell für jede Besprechung das
-beste ist. Für Aufnahmeverarbeitung ist `gpt-transcribe` konfiguriert; ein echter
-Audio-API-Test wurde noch nicht ausgeführt.
+beste ist. Für Aufnahmeverarbeitung ist `gpt-transcribe` konfiguriert. Beide
+Adapter wurden am 7. November 2026 mit echten API-Aufrufen geprüft; für den
+Audio-Test wurde ein öffentliches synthetisches OpenAI-Stimmbeispiel verwendet.
 
 Die Texte der Besprechung sind Nutzdaten, keine Arbeitsanweisungen an die Anwendung.
 Das Modell erhält keine Werkzeuge zum Ausführen von Befehlen oder Versenden von

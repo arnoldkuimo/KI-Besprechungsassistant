@@ -74,10 +74,33 @@ das Konto einer anderen n8n-Installation. In **Executions** sind die einzelnen
 Schritte und ihre Daten sichtbar. Die menschliche Prüfung findet anschließend in
 der Anwendung statt, nicht im n8n-Editor.
 
-**Prüfstand:** Lokaler Betrieb, Browserablauf und echte Textauswertung wurden
-ausgeführt. Der komplette Compose-/n8n-/PostgreSQL-Betrieb konnte in der
-Entwicklungsumgebung wegen fehlendem Docker-Engine-Zugriff noch nicht ausgeführt
-werden. Der Workflow-Export und seine HTTP-Endpunkte wurden getrennt geprüft.
+**Prüfstand vom 7. November 2026:** Lokaler Betrieb, Desktop-/Mobilansicht,
+echte Textauswertung und Audio-Transkription wurden ausgeführt. Auch der
+vollständige Ablauf mit OpenAI, PostgreSQL und n8n wurde bis zur Freigabe,
+zum Export und zur Änderung eines Aufgabenstatus geprüft. Details und Grenzen
+stehen in [docs/pruefungen.md](docs/pruefungen.md).
+
+## Entwicklung in VS Code
+
+Den Projektordner öffnen und im ersten Terminal starten:
+
+```powershell
+.\scripts\start-local.ps1 -Reload
+```
+
+In einem zweiten Terminal aus dem Projektordner:
+
+```powershell
+. .\scripts\frontend-tools.ps1
+Set-Location frontend
+& $Pnpm dev
+```
+
+Die Entwicklungsoberfläche läuft unter [http://127.0.0.1:5174](http://127.0.0.1:5174).
+React-Änderungen erscheinen automatisch, Python-Änderungen starten das Backend
+neu. Der Vite-Proxy nutzt Backend-Port 8030. Nicht gleichzeitig den Docker-Stack
+auf diesem Port betreiben. Der lokale Start verwendet SQLite, der Docker-Start
+PostgreSQL; beide besitzen daher getrennte Besprechungsdaten.
 
 ## Einmal vollständig ausprobieren
 
@@ -143,6 +166,19 @@ fiktiven Notizen ist separat verfügbar:
 
 ```powershell
 .\.venv\Scripts\python.exe scripts/check_openai.py --confirm-cost
+```
+
+Der vollständige Ablauf gegen eine laufende OpenAI-/n8n-Instanz ist ebenfalls
+kostenpflichtig und benötigt eine ausdrückliche Freigabe:
+
+```powershell
+.\.venv\Scripts\python.exe scripts/check_stack.py --url http://127.0.0.1:8030 --require-n8n --confirm-cost
+```
+
+Vor einer Veröffentlichung:
+
+```powershell
+.\.venv\Scripts\python.exe scripts/check_secrets.py --worktree --history
 ```
 
 ## Dokumentation

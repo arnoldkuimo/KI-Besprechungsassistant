@@ -164,6 +164,10 @@ def build_app(settings=None, extractor=None):
             raise HTTPException(
                 422, "Die Übertragung an den externen Verarbeitungsdienst muss ausdrücklich freigegeben sein."
             )
+        if settings.provider == "openai" and not settings.openai_api_key.strip():
+            raise HTTPException(
+                503, "Die Auswertung ist noch nicht eingerichtet. Den lokalen API-Zugang konfigurieren."
+            )
         if not audio_path and len(data.transcript.strip()) < 30:
             raise HTTPException(422, "Die Quelle muss mindestens 30 Zeichen enthalten.")
         segments = [] if audio_path else segments_from_text(data.transcript, data.participants)

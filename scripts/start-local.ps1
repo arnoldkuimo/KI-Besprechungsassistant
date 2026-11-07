@@ -1,4 +1,4 @@
-param([int]$Port = 8030)
+param([int]$Port = 8030, [switch]$Reload)
 $ErrorActionPreference = 'Stop'
 Set-Location (Split-Path -Parent $PSScriptRoot)
 . (Join-Path $PSScriptRoot 'frontend-tools.ps1')
@@ -17,6 +17,8 @@ try {
 } finally { Pop-Location }
 $env:WORKFLOW_MODE = 'local'
 $env:DATABASE_URL = 'sqlite:///./data/meetings.db'
-$env:ALLOWED_ORIGINS = "[`"http://localhost:$Port`",`"http://127.0.0.1:$Port`"]"
+$env:ALLOWED_ORIGINS = "[`"http://localhost:$Port`",`"http://127.0.0.1:$Port`",`"http://localhost:5174`",`"http://127.0.0.1:5174`"]"
 Write-Output "Besprechungsprotokolle: http://localhost:$Port"
-& .\.venv\Scripts\python.exe -m uvicorn backend.app.main:app --host 127.0.0.1 --port $Port
+$serverArguments = @('-m', 'uvicorn', 'backend.app.main:app', '--host', '127.0.0.1', '--port', $Port)
+if ($Reload) { $serverArguments += @('--reload', '--reload-dir', 'backend') }
+& .\.venv\Scripts\python.exe @serverArguments

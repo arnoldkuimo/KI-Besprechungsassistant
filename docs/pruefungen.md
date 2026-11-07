@@ -1,10 +1,10 @@
-# Prüfstand vom 4. November 2026
+# Prüfstand vom 7. November 2026
 
 ## Tatsächlich ausgeführt
 
 | Prüfung | Ergebnis |
 | --- | --- |
-| Backend-Tests mit isolierten SQLite-Datenbanken | 16 bestanden |
+| Backend-Tests mit isolierten SQLite-Datenbanken | 25 bestanden |
 | Frontend-Unit-Tests | 2 bestanden |
 | TypeScript und Vite-Produktionsbuild | erfolgreich |
 | Ruff-Prüfung und Formatprüfung | erfolgreich |
@@ -14,17 +14,24 @@
 | HTTP-Integrationsablauf mit lokalem Worker | erfolgreich |
 | Playwright: Erfassung, Bearbeitung, Quellenbeleg, Freigabe, Export, Aufgabenstatus, Kontentrennung | erfolgreich |
 | Browseransichten mit 1440 × 1000 und 390 × 844 Pixeln | kein horizontaler Seitenüberlauf, keine JavaScript-Laufzeitfehler |
-| Echte OpenAI-Textauswertung mit fiktiven Notizen | erfolgreich, ein Auswertungsaufruf mit gpt-4.1-mini |
+| Echte OpenAI-Textauswertung mit fiktiven Notizen | erfolgreich mit gpt-4.1-mini, passende Belege und keine Prüfhinweise |
+| Echte Audio-Transkription | erfolgreich mit gpt-transcribe und einem öffentlichen synthetischen OpenAI-Stimmbeispiel |
+| Docker Compose, PostgreSQL und n8n mit echter OpenAI-Auswertung | Quelle, Auswertung, Belege, Freigabe, Markdown/CSV, Aufgabenstatus und Kontentrennung erfolgreich |
+| Audio-Gesamtablauf über die laufende Anwendung | Upload, Transkription, Auswertung, n8n, PostgreSQL, Belege, Freigabe und Markdown-Export erfolgreich |
 | Workflow-Export: getrennte Phasen, Header-Authentifizierung, Fehlerpfade | automatisiert geprüft |
-| Vor dem Commit vorgemerkte Dateien auf lokale Geheimnisse prüfen | erfolgreich |
+| Projektdateien und erreichbare Git-Historie auf lokale Geheimnisse prüfen | erfolgreich |
 
 Der API-Test lieferte eine belegte Zusammenfassung, eine Entscheidung, eine Aufgabe
 mit ausdrücklich genanntem Datum und eine offene Frage. Es entstanden keine
-Prüfhinweise. Dies ist ein einzelner Funktionstest, kein umfassender Qualitätsbenchmark.
+Prüfhinweise. Dies sind gezielte Funktionstests, kein umfassender Qualitätsbenchmark.
 
-Der Audio-Import wurde mit einem Ersatz-Transkriptionsdienst getestet:
+Der Audio-Import wurde zunächst mit einem Ersatz-Transkriptionsdienst getestet:
 Erlaubnisprüfung, Dateiformatprüfung, privater Speicherpfad, Übernahme des Textes und
-Entfernung der Rohdatei nach Erfolg. Dabei fand **kein echter Audio-API-Aufruf** statt.
+Entfernung der Rohdatei nach Erfolg. Am 7. November wurden zusätzlich die echte
+Transkription und der gesamte Audio-Ablauf bis zum freigegebenen Protokoll geprüft.
+Die Aufnahme stammt aus dem öffentlichen synthetischen OpenAI-Stimmbeispiel
+unter https://cdn.openai.com/API/docs/audio/alloy.wav. Sie wurde nur im ignorierten
+lokalen Cache gespeichert und wird nicht veröffentlicht.
 
 Die Backend-Tests decken insbesondere ab:
 
@@ -40,24 +47,28 @@ Die Backend-Tests decken insbesondere ab:
 - Exporte vor Freigabe sind gesperrt; Tabellenformeln werden entschärft.
 - Externe Verarbeitung ohne Zustimmung wird abgelehnt.
 - Interne Modellaufrufe nutzen ein festes Ausgabeformat und `store=False`.
+- Fehlender API-Zugang verhindert einen neuen kostenpflichtigen Auftrag.
+- Ungültige oder leere Modellausgaben erzeugen keinen freigabefähigen Entwurf.
+- Externe Fehler geben weder Schlüssel noch technische Originalmeldungen preis.
+- Der Transkriptionsadapter überträgt die ausgewählte Datei an das konfigurierte Modell.
 
 ## Noch nicht vollständig geprüft
 
-- **Docker Compose, PostgreSQL und die tatsächliche n8n-Ausführung im Verbund:**
-  Die Entwicklungsumgebung kann die Docker-Engine nicht ansprechen. Das Setup und
-  ein ausführbarer Stack-Test sind vorhanden; daraus wird kein bestandener Test
-  des gesamten Stacks abgeleitet.
-- **Echte Audio-Transkription:** nur Adapter-/Ablaufprüfung mit Ersatzdienst.
+- **Wiederanlauf und Backups:** kein vollständiger Neustart-/Wiederherstellungstest
+  des laufenden Docker-Stacks. Die Unterbrechungs- und Wiederholungslogik ist in
+  isolierten Backend-Tests abgedeckt.
 - **Unternehmensbetrieb:** keine SSO-, Last-, Penetrations-, Backup-/Restore- oder
   organisatorische Datenschutzabnahme.
 - **Modellqualität im Alltag:** keine repräsentative Auswertung langer, mehrdeutiger
   oder schlecht transkribierter Besprechungen.
-- **GitHub-Veröffentlichung:** noch nicht erfolgt. Eine nutzbare GitHub-Anmeldung
-  fehlt; der Credential Manager öffnet kein Fenster und seine spätere Geräteanmeldung
-  scheitert hier an der Windows-Verbindung. Keine Zugangsdaten wurden veröffentlicht.
+- **GitHub Actions:** der lokale Testnachweis ersetzt keinen erfolgreichen CI-Lauf.
+  Dieser ist nach der Veröffentlichung separat zu kontrollieren.
 
-Die vorhandene GitHub-Actions-Datei beschreibt diese Prüfungen für einen künftigen
-Push. Ein enthaltener CI-Workflow ist kein Nachweis, dass er bereits gelaufen ist.
+Der Docker-Start erfolgte aus einer normalen Windows-PowerShell. Die laufenden
+Dienste wurden anschließend über ihre lokalen HTTP-Endpunkte geprüft. Eine frühe
+Anfrage vor der Workflow-Registrierung schlug erwartbar fehl; nach abgeschlossenem
+Setup war der n8n-Gesamttest erfolgreich. Mit Tests erst beginnen, wenn das
+Startskript die fertigen Anwendungsadressen ausgegeben hat.
 
 ## Bekannter Hinweis
 

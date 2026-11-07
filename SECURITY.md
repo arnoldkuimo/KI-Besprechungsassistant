@@ -12,9 +12,10 @@
   Aufnahmen werden nicht heimlich erstellt. Ein Modell kann Fehler machen.
 - API-Key, Datenbankpasswort und Workflow-Schlüssel gehören nur in die lokale
   `.env` oder eine geeignete Secret-Verwaltung. Eine echte `.env` nicht hochladen.
-- Aufnahmen, Datenbanken, Quellen, Berichte und n8n-Ausführungsdaten bleiben lokal
-  beziehungsweise in den lokalen Docker-Volumes. Sie sind nicht für GitHub bestimmt.
-  n8n-Ausführungen können vollständige Textabschnitte enthalten.
+- Aufnahmen, Datenbanken, Quellen, Berichte und n8n-Ausführungsdaten werden lokal
+  beziehungsweise in Docker-Volumes gespeichert und nicht auf GitHub veröffentlicht.
+  Bei freigegebener OpenAI-Verarbeitung werden die jeweilige Quelle und Metadaten
+  an den Anbieter übertragen. n8n-Ausführungen können vollständige Textabschnitte enthalten.
 - Eine Rohaufnahme wird nach erfolgreicher Transkription gelöscht. Bei einem
   Fehler bleibt sie für Wiederholungen gespeichert. Historische Text- und
   Protokollversionen werden nicht automatisch gelöscht.

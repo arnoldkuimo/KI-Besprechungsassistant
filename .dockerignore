@@ -3,6 +3,8 @@
 .env.*
 .venv
 .cache
+.pytest_cache
+.ruff_cache
 **/node_modules
 **/dist
 **/__pycache__
