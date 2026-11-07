@@ -76,6 +76,13 @@ Starlettes TestClient meldet eine Deprecation-Warnung für die installierte
 httpx-Anbindung. Die Tests bestehen; dieser Hinweis bleibt bei einem späteren
 Abhängigkeitsupdate zu bearbeiten.
 
+Der zusätzliche Browserlauf gegen den Vite-Entwicklungsserver ist in der
+eingeschränkten Windows-Sitzung am nativen esbuild-Prozess gescheitert:
+Beim Auflösen von Abhängigkeiten kann er ein übergeordnetes Verzeichnis nicht
+lesen. HTTP-Anfragen über den Vite-Proxy und die Herkunftsprüfung wurden zuvor
+erfolgreich geprüft. Der erfolgreiche Desktop-/Mobil-Browsertest bezieht sich
+auf den Produktionsbuild mit lokalem Backend, nicht auf den Vite-Server.
+
 ## Browserbilder
 
 Die Bilder in `screenshots/` enthalten ausschließlich das fiktive Beispiel und

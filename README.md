@@ -101,6 +101,8 @@ React-Änderungen erscheinen automatisch, Python-Änderungen starten das Backend
 neu. Der Vite-Proxy nutzt Backend-Port 8030. Nicht gleichzeitig den Docker-Stack
 auf diesem Port betreiben. Der lokale Start verwendet SQLite, der Docker-Start
 PostgreSQL; beide besitzen daher getrennte Besprechungsdaten.
+Bei einem anderen lokalen Backend-Port im zweiten Terminal vor dem Vite-Start
+`$env:MEETING_API_URL = 'http://127.0.0.1:8031'` passend zum gewählten Port setzen.
 
 ## Einmal vollständig ausprobieren
 
